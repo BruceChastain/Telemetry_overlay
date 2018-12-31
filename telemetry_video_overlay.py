@@ -39,13 +39,13 @@ for track in gpx.tracks:
 from moviepy.editor import *
 video = VideoFileClip('test_vid.avi')
 
-txt_clip = ( TextClip("My TEXT TEX TEX")
-        .set_position('center')
-        .set_duration('10')            
-            )
+txt_clip = (TextClip("TESTY TESTY")
+            .set_position('center')
+            .set_duration(.1)            
+)
 
 result = CompositeVideoClip([video, txt_clip])
-result.write_videofile("output.mov")
+result.write_videofile("output.mp4")
 
 
           

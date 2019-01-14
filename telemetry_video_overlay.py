@@ -1,8 +1,13 @@
 #!/usr/bin/python
+import os
+import subprocess
 import sys
 import gpxpy
 import ffmpeg
 from moviepy.editor import *
+import moviepy
+
+srt_file = "srt_file.srt"
 
 #---------getting data from user
 vidinput = (sys.argv[1])
@@ -13,7 +18,6 @@ vidsync = (sys.argv[5])
 tellen = (sys.argv[6])
 
 
-
 print (vidinput)
 print (vidoutput)
 print (gpxinput)
@@ -22,22 +26,21 @@ print (vidsync)
 print (tellen)
 
 
-
 #find the FPS !!!
 clip = VideoFileClip(vidinput)
 print(clip.fps)
 print(clip.duration)
-print(clip.is_playing(2))
 
 
 
 
+   
 
-
-#---------reading gpx file and cauclating speed
+#---------reading gpx file and cauclating speed and writing .srt file
 gpx_file = open(gpxinput, 'r')
 gpx = gpxpy.parse(gpx_file)
-
+gpxtime = ""
+line = 0
 for track in gpx.tracks:
     for segment in track.segments:
         for point_no, point in enumerate(segment.points):
@@ -46,26 +49,48 @@ for track in gpx.tracks:
             elif point_no > 0:
                 speed = (point.speed_between(segment.points[point_no - 1]))
                 kph_speed = speed * 3.6
-                #print kph_speed
+                kph_speed = str(kph_speed)
+                print(kph_speed) 
+                #making line numbers                
+                line = line + 1
+                line = str(line)  
+                print(line)     
+                #making time stamps
+                old_cut_time=(gpxtime[11:18])
+                print(old_cut_time)
+                current_time = str(point.time)              
+                current_cut_time=(current_time[11:19])  
+                print(current_cut_time)            
+                  
+
+                #writing file (only takes strings)
+                file=open(srt_file,"a")
+                file.write(line)
+                file.write("\n")
+                file.write(old_cut_time)
+                file.write(" --> ")
+                file.write(current_cut_time)
+                file.write("\n")
+                file.write(kph_speed)
+                file.write("\n")
+                file.close() 
+                line = int(line)
 
 
 
-#--------applying overlay and rendering video
-
-dur = 10
-
-video = VideoFileClip(vidinput)
 
 
 
 
-txt_clip = (TextClip(str(kph_speed), fontsize=90,color='white')
-            .set_position('center')
-            .set_duration(dur)            
-)
+# generate the video using the subtitles file 
+#os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4")
 
-result = CompositeVideoClip([video, txt_clip])
-result.write_videofile(vidoutput)
+
+#clean up - delete srt file
+#os.remove("srt_file.srt") 
+
+
+
 
 
 

@@ -39,7 +39,8 @@ print(clip.duration)
 #---------reading gpx file and cauclating speed and writing .srt file
 gpx_file = open(gpxinput, 'r')
 gpx = gpxpy.parse(gpx_file)
-gpxtime = ""
+#setting a var to start with, using the user input when to start the subtitles
+current_time_add_zero = vidsync
 line = 0
 for track in gpx.tracks:
     for segment in track.segments:
@@ -56,34 +57,30 @@ for track in gpx.tracks:
                 line = str(line)  
                 print(line)     
                 #making time stamps
-                old_cut_time=(gpxtime[11:18])
-                print(old_cut_time)
+                old_cut_time=current_time_add_zero
+                print(old_cut_time) 
                 current_time = str(point.time)              
-                current_cut_time=(current_time[11:19])  
-                print(current_cut_time)            
-                  
-
+                current_cut_time=(current_time[11:19])
+                current_time_add_zero=(current_cut_time + ",000")  
+                print(current_time_add_zero)       
                 #writing file (only takes strings)
                 file=open(srt_file,"a")
                 file.write(line)
                 file.write("\n")
                 file.write(old_cut_time)
                 file.write(" --> ")
-                file.write(current_cut_time)
+                file.write(current_time_add_zero)
                 file.write("\n")
                 file.write(kph_speed)
                 file.write("\n")
                 file.close() 
-                line = int(line)
-
-
-
+                line = int(line) 
 
 
 
 
 # generate the video using the subtitles file 
-#os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4")
+os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4")
 
 
 #clean up - delete srt file

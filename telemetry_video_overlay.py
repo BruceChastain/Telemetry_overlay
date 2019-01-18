@@ -3,11 +3,8 @@ import os
 import sys
 import gpxpy
 import ffmpeg
-from moviepy.editor import *
-import moviepy
 
-
-#clean up - delete srt file
+#---------clean up - delete srt file
 srt_file = "srt_file.srt"
 exists = os.path.isfile(srt_file)
 if exists:
@@ -48,22 +45,27 @@ for track in gpx.tracks:
                     time_dif_second = (point.time.second - time_second) 
                     print(time_dif_second) 
                 
-                time_second = (point.time.second)
-       
+                time_second = (point.time.second)   
                 
                 if first_time == True:
                     init_offset = time_second
-                    first_time = False    
-                
+                    first_time = False                 
                 
                 if time_dif_second < 0: #means if it's a negtaive number
                     time_dif_second = time_dif_second + 60
-                    time_minute = time_minute + 1
+
+                final_output_seconds = (time_second - init_offset - time_dif_second)
+
+                print(final_output_seconds)
+                                         
                 
-                  
+                if final_output_seconds < 0:
+                    final_output_seconds = final_output_seconds + 59
+                   
+                    
+                 
                 line = line + 1  
-
-
+            
                 if first_time == False:
                     file=open(srt_file,"a")
                     file.write (str(line))
@@ -71,25 +73,27 @@ for track in gpx.tracks:
                     file.write ("00:")
                     file.write (str(time_minute))
                     file.write (":")
-                    file.write (str(time_second - init_offset - time_dif_second))
+                    file.write (str(final_output_seconds))
                     file.write (",")
                     file.write ("000")
                     file.write(" --> ")
                     file.write ("00:")
                     file.write (str(time_minute))
                     file.write (":")
-                    file.write (str(time_second - init_offset))
+                    file.write (str(final_output_seconds + time_dif_second))
                     file.write (",")
                     file.write ("000")
                     file.write("\n")
                     file.write(kph_speed + " kp/h")
                     file.write("\n")
                     file.close() 
+                
 
 
 
 # generate the video using the subtitles file 
-os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4 -y")
+#os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4 -y")
+
 
 
 

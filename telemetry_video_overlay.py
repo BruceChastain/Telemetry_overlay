@@ -1,13 +1,18 @@
 #!/usr/bin/python
 import os
-import subprocess
 import sys
 import gpxpy
 import ffmpeg
 from moviepy.editor import *
 import moviepy
 
+
+#clean up - delete srt file
 srt_file = "srt_file.srt"
+exists = os.path.isfile(srt_file)
+if exists:
+    os.remove(srt_file) 
+
 
 #---------getting data from user
 vidinput = (sys.argv[1])
@@ -18,73 +23,76 @@ vidsync = (sys.argv[5])
 tellen = (sys.argv[6])
 
 
-print (vidinput)
-print (vidoutput)
-print (gpxinput)
-print (telsync)
-print (vidsync)
-print (tellen)
-
-
-#find the FPS !!!
-clip = VideoFileClip(vidinput)
-print(clip.fps)
-print(clip.duration)
-
-
-
-
-   
-
 #---------reading gpx file and cauclating speed and writing .srt file
 gpx_file = open(gpxinput, 'r')
 gpx = gpxpy.parse(gpx_file)
-#setting a var to start with, using the user input when to start the subtitles
-current_time_add_zero = vidsync
+
 line = 0
+time_second = 0
+time_minute = 0
+time_dif_second = 0
+first_time = True
+
 for track in gpx.tracks:
     for segment in track.segments:
         for point_no, point in enumerate(segment.points):
-            if point.speed != None:
-                print("speed="), point.speed
-            elif point_no > 0:
+            if point_no > 0:
                 speed = (point.speed_between(segment.points[point_no - 1]))
-                kph_speed = speed * 3.6
+                kph_speed = round(speed * 3.6, 1)
                 kph_speed = str(kph_speed)
-                print(kph_speed) 
-                #making line numbers                
-                line = line + 1
-                line = str(line)  
-                print(line)     
-                #making time stamps
-                old_cut_time=current_time_add_zero
-                print(old_cut_time) 
-                current_time = str(point.time)              
-                current_cut_time=(current_time[11:19])
-                current_time_add_zero=(current_cut_time + ",000")  
-                print(current_time_add_zero)       
-                #writing file (only takes strings)
-                file=open(srt_file,"a")
-                file.write(line)
-                file.write("\n")
-                file.write(old_cut_time)
-                file.write(" --> ")
-                file.write(current_time_add_zero)
-                file.write("\n")
-                file.write(kph_speed)
-                file.write("\n")
-                file.close() 
-                line = int(line) 
+ 
+                #pulling time and making line numbers 
 
+                
+                if first_time == False:
+                    time_dif_second = (point.time.second - time_second) 
+                    print(time_dif_second) 
+                
+                time_second = (point.time.second)
+       
+                
+                if first_time == True:
+                    init_offset = time_second
+                    first_time = False    
+                
+                
+                if time_dif_second < 0: #means if it's a negtaive number
+                    time_dif_second = time_dif_second + 60
+                    time_minute = time_minute + 1
+                
+                  
+                line = line + 1  
+
+
+                if first_time == False:
+                    file=open(srt_file,"a")
+                    file.write (str(line))
+                    file.write("\n")
+                    file.write ("00:")
+                    file.write (str(time_minute))
+                    file.write (":")
+                    file.write (str(time_second - init_offset - time_dif_second))
+                    file.write (",")
+                    file.write ("000")
+                    file.write(" --> ")
+                    file.write ("00:")
+                    file.write (str(time_minute))
+                    file.write (":")
+                    file.write (str(time_second - init_offset))
+                    file.write (",")
+                    file.write ("000")
+                    file.write("\n")
+                    file.write(kph_speed + " kp/h")
+                    file.write("\n")
+                    file.close() 
 
 
 
 # generate the video using the subtitles file 
-os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4")
+os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4 -y")
 
 
-#clean up - delete srt file
-#os.remove("srt_file.srt") 
+
 
 
 

@@ -29,6 +29,7 @@ time_second = 0
 time_minute = 0
 time_dif_second = 0
 first_time = True
+last_final_output_seconds = 0
 
 for track in gpx.tracks:
     for segment in track.segments:
@@ -38,13 +39,10 @@ for track in gpx.tracks:
                 kph_speed = round(speed * 3.6, 1)
                 kph_speed = str(kph_speed)
  
-                #pulling time and making line numbers 
-
                 
                 if first_time == False:
                     time_dif_second = (point.time.second - time_second) 
-                    print(time_dif_second) 
-                
+                             
                 time_second = (point.time.second)   
                 
                 if first_time == True:
@@ -53,17 +51,19 @@ for track in gpx.tracks:
                 
                 if time_dif_second < 0: #means if it's a negtaive number
                     time_dif_second = time_dif_second + 60
-
+                
+        
                 final_output_seconds = (time_second - init_offset - time_dif_second)
-
-                print(final_output_seconds)
                                          
                 
                 if final_output_seconds < 0:
-                    final_output_seconds = final_output_seconds + 59
-                   
-                    
-                 
+                    final_output_seconds = final_output_seconds + 60
+
+                #upping the minutes if the seconds go past 60 seconds
+                if last_final_output_seconds > final_output_seconds:
+                    time_minute = time_minute + 1    
+                last_final_output_seconds = final_output_seconds        
+                
                 line = line + 1  
             
                 if first_time == False:
@@ -92,14 +92,6 @@ for track in gpx.tracks:
 
 
 # generate the video using the subtitles file 
-#os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4 -y")
-
-
-
-
-
-
-
-
+os.system("ffmpeg -i input.mp4 -vf subtitles=srt_file.srt output.mp4 -y")
 
 
